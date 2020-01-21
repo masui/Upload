@@ -19,6 +19,15 @@ else
   exit
 end
 
+if `which pbcopy` != ""
+  pbcopy = "pbcopy"
+elsif `which xsel` != ""
+  pbcopy = "xsel --clipboard --input"
+else
+  STDERR.puts "copy command not found"
+  exit
+end
+
 save = true
 if ARGV[0] == '-n'
   save = false
@@ -39,10 +48,10 @@ end
 hash = Digest::MD5.new.update(File.read(file)).to_s
 
 dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
-puts "/usr/bin/s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
-system "/usr/bin/s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
 puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
-system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | xsel --clipboard --input"
+system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | #{pbcopy}"
 
 exit if !save
 
