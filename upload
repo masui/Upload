@@ -1,0 +1,54 @@
+#!/usr/bin/env ruby
+#
+# ファイルをS3にアップロードしつつScrapboxに登録する
+# -n オプションをつけるとScrapboxに登録しない
+#
+
+bucket = "masui.org"
+project = "masui-files"
+
+require 'digest/md5'
+require 'shellwords'
+
+if `which open` != ""
+  open = "open"
+elsif `which xdg-open` != ""
+  open = "xdg-open"
+else
+  STDERR.puts "open command not found"
+  exit
+end
+
+save = true
+if ARGV[0] == '-n'
+  save = false
+  ARGV.shift
+end
+
+file = ARGV.shift
+exit unless file
+exit unless File.exist?(file)
+
+home = ENV['HOME']
+
+ext = ''
+if file =~ /^(.*)(\.\w+)$/ then
+  ext = $2
+end
+
+hash = Digest::MD5.new.update(File.read(file)).to_s
+
+dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+puts "/usr/bin/s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+system "/usr/bin/s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | xsel --clipboard --input"
+
+exit if !save
+
+url = "http://#{bucket}/#{hash}#{ext}"
+title = Time.now.strftime('%Y%m%d%H%M%S')
+monthtag = Time.now.strftime('%Y%m')
+
+scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{url}]%0d%0d%23#{monthtag}"
+system "#{open} '#{scrapboxurl}'"
