@@ -53,11 +53,11 @@ system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{ds
 puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
 system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | #{pbcopy}"
 
-exit if !save
-
-url = "http://#{bucket}/#{hash}#{ext}"
-title = Time.now.strftime('%Y%m%d%H%M%S')
-monthtag = Time.now.strftime('%Y%m')
-
-scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{url}]%0d%0d%23#{monthtag}"
-system "#{open} '#{scrapboxurl}'"
+# exit if !save
+# 
+# url = "http://#{bucket}/#{hash}#{ext}"
+# title = Time.now.strftime('%Y%m%d%H%M%S')
+# monthtag = Time.now.strftime('%Y%m')
+# 
+# scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{url}]%0d%0d%23#{monthtag}"
+# system "#{open} '#{scrapboxurl}'"

@@ -1,0 +1,95 @@
+#!/usr/bin/env ruby
+#
+# PDFや画像をScrapboxに登録する
+# GoogleDriveのURLを使う
+# Gyazoにも登録する
+#
+
+bucket = "masui.org"
+project = "masui-files"
+
+require 'digest/md5'
+require 'shellwords'
+require 'pathname'
+require 'gyazo'
+
+if `which open` != ""
+  open = "open"
+elsif `which xdg-open` != ""
+  open = "xdg-open"
+else
+  STDERR.puts "open command not found"
+  exit
+end
+
+if `which pbcopy` != ""
+  pbcopy = "pbcopy"
+elsif `which xsel` != ""
+  pbcopy = "xsel --clipboard --input"
+else
+  STDERR.puts "copy command not found"
+  exit
+end
+
+home = ENV['HOME']
+
+token = ENV['GYAZO_TOKEN'] # .bash_profileに書いてある
+gyazo = Gyazo::Client.new access_token: token
+
+ARGV.each { |file|
+  next unless File.exist?(file)
+
+  s = File.expand_path(file)
+  path = Pathname.new(s)
+  fullpath = path.realpath.to_s
+
+  hash = Digest::MD5.new.update(File.read(file)).to_s
+
+  id = ''
+  googledrivedir = ''
+  if fullpath =~ /^(.*\/GoogleDrive\/MyDrive)\/(.*)$/
+    googledrivedir = $1
+    id = $2
+  end
+  next if id == ''
+
+  ext = ''
+  if fullpath =~ /^(.*)(\.\w+)$/ then
+    ext = $2
+  end
+
+  puts "/usr/local/go/bin/skicka -dump-http cat #{id} 1> /dev/null 2> /tmp/skicka_log"
+  system "/usr/local/go/bin/skicka -dump-http cat #{id} 1> /dev/null 2> /tmp/skicka_log"
+  puts "grep 'GET.*drive.*files' /tmp/skicka_log | grep -v root"
+  s = `grep 'GET.*drive.*files' /tmp/skicka_log | grep -v root`
+  s =~ /GET \/drive\/v2\/files\/(.*)\?/
+  gd_url = "https://drive.google.com/file/d/#{$1}"
+
+  puts "gd_url = #{gd_url}"
+
+  urls = []
+  if file =~ /\.pdf$/i
+    # 画像にしてGyazoにアップロード
+    system "convert -density 300 '#{file}[0]' /tmp/namecard.png"
+    STDERR.puts "upload #{file} to Gyazo..."
+    res = gyazo.upload imagefile: '/tmp/namecard.png'
+    urls << res[:permalink_url]
+    sleep 1
+  elsif file =~ /\.(jpg|jpeg|gif|png)$/i
+    STDERR.puts "upload #{file} to Gyazo..."
+    res = gyazo.upload imagefile: file
+    urls << res[:permalink_url]
+    sleep 1
+  end
+    
+  urls << gd_url
+  title = Time.now.strftime('%Y%m%d%H%M%S')
+
+  scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{urls.join(' ')}]%0d"
+
+  puts "mv #{fullpath} #{googledrivedir}/sup/#{hash}#{ext}"
+  system "mv #{fullpath} #{googledrivedir}/sup/#{hash}#{ext}"
+
+  # Scrapboxページ作成
+  system "#{open} '#{scrapboxurl}'"
+}
