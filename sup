@@ -67,6 +67,10 @@ ARGV.each { |file|
 
   scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{urls.join(' ')}]%0d"
 
+  googledrivedir = "/mnt/chromeos/GoogleDrive/MyDrive"
+  puts "mv '#{file}' #{googledrivedir}/sup/#{hash}#{ext}"
+  system "mv '#{file}' #{googledrivedir}/sup/#{hash}#{ext}"
+
   # Scrapboxページ作成
   system "#{open} '#{scrapboxurl}'"
 }

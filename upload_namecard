@@ -4,6 +4,9 @@
 # Gyazoに変換する
 #
 
+puts "Use 'sup' command"
+exit
+
 bucket = "masui.org"
 project = "masui-files"
 
