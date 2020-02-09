@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 #
-# ファイルをS3にアップロードしつつScrapboxに登録する
-# -n オプションをつけるとScrapboxに登録しない
+# ファイルをS3にアップロード
 #
 
 bucket = "masui.org"
