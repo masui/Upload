@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+require 'gyazo'
+
+file = ARGV[0]
+exit unless File.exist?(file)
+
+gyazo_token = ENV['GYAZO_TOKEN'] # .bash_profileに書いてある
+gyazo = Gyazo::Client.new access_token: gyazo_token
+
+res = gyazo.upload imagefile: file
+gyazo_url = res[:permalink_url]
+
+puts gyazo_url
