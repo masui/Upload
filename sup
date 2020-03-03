@@ -43,9 +43,14 @@ ARGV.each { |file|
     ext = $1
   end
     
-  dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
-  puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
-  system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+  # dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+  # puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+  # system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+
+  # S3にアップロード
+  STDERR.puts "ruby #{home}/bin/upload '#{file}'"
+  s3url = `ruby #{home}/bin/upload '#{file}'`.chomp
+  STDERR.puts s3url
 
   urls = []
   if file =~ /\.pdf$/i
@@ -62,7 +67,7 @@ ARGV.each { |file|
     sleep 1
   end
     
-  urls << "http://#{bucket}/#{hash}#{ext}"
+  urls << s3url
   title = Time.now.strftime('%Y%m%d%H%M%S')
 
   scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{urls.join(' ')}]%0d"

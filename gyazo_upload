@@ -1,14 +1,28 @@
 #!/usr/bin/env ruby
+#
+# タイムスタンプを保持しつつJPEG画像をGyazoにアップする
+#
 
+require 'exifr/jpeg'
 require 'gyazo'
 
-file = ARGV[0]
-exit unless File.exist?(file)
-
-gyazo_token = ENV['GYAZO_TOKEN'] # .bash_profileに書いてある
+gyazo_token = ENV['GYAZO_TOKEN'] # .bash_profileに書いておく
 gyazo = Gyazo::Client.new access_token: gyazo_token
 
-res = gyazo.upload imagefile: file
-gyazo_url = res[:permalink_url]
+ARGV.each { |file|
+  if file =~ /\.jpg$/i && File.exist?(file)
 
-puts gyazo_url
+    t = Time.now
+    begin
+      exif = EXIFR::JPEG.new(file)
+      t = exif.date_time
+    rescue
+    end
+
+    res = gyazo.upload imagefile: file, created_at: t
+    gyazo_url = res[:permalink_url]
+
+    puts gyazo_url
+  end
+}
+
