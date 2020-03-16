@@ -2,7 +2,7 @@
 #
 # PDFやJPEGなどをGyazoにアップロードする
 #
-# JPEGの場合はタイムスタンプを保持しする
+# JPEGの場合はタイムスタンプを保持する
 #
 
 require 'exifr/jpeg'
