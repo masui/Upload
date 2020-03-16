@@ -9,6 +9,15 @@
 require 'exifr/jpeg'
 require 'gyazo'
 
+if `which pbcopy` != ""
+  pbcopy = "pbcopy"
+elsif `which xsel` != ""
+  pbcopy = "xsel --clipboard --input"
+else
+  STDERR.puts "pbcopy command not found"
+  exit
+end
+
 gyazo_token = ENV['GYAZO_TOKEN'] # .bash_profileに書いておく
 gyazo = Gyazo::Client.new access_token: gyazo_token
 
@@ -46,8 +55,8 @@ ARGV.each { |file|
 }
 
 urls.each { |url|
+  `echo #{url} | #{pbcopy}`
   puts url
 }
-
 
 
