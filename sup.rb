@@ -3,14 +3,15 @@
 # PDFや画像をS3とかにアップロードしつつScrapboxに登録する
 # Gyazoにも登録する
 #
-# S3とかへのアップロードは upload コマンド
-# Gyazoへのアップロードは upload_gyazo
+# S3へのアップロードは upload_s3 コマンド
+# Gyazoへのアップロードは upload_gyazo コマンド
 #
 # Scrapboxにページを作らない場合は -n オプション
 #
 
 require 'gyazo'
 require 'digest/md5'
+require 'time'
 
 make_scrapbox_page = true
 if ARGV[0] == "-n"
@@ -33,6 +34,9 @@ gyazo = Gyazo::Client.new access_token: gyazo_token
 
 project = "masui-files" # Scrapboxプロジェクト名
 
+#
+# openコマンドをさがす
+#
 if `which open` != ""
   open = "open"
 elsif `which xdg-open` != ""
@@ -69,17 +73,46 @@ if gyazourl
   # Gyazo.comのデータ削除
   #
   gyazo.delete image_id: gyazoid
+else
+  # 最新のGyazo画像をチェックする
+  gyazo.list(page: 1, per_page:1)[:images].each do |image|
+    gyazoid = image[:image_id]
+    newest_gyazo_time = Time.parse(image[:created_at])
+    if Time.now.gmtime - newest_gyazo_time < 30
+      #
+      # 最新のGyazoデータを利用
+      #
+      # 登録されてるGyazoデータを取得
+      #
+      res = gyazo.image image_id: gyazoid
+      url = "https://gyazo.com/#{gyazoid}.#{res[:type]}"
+      tmpimage = "/tmp/tmpimage#{$$}.#{res[:type]}"
+      cmd = "wget -q #{url} -O #{tmpimage}"
+      system cmd
+      #
+      # Gyazo.comのデータ削除
+      #
+      gyazo.delete image_id: gyazoid
+    end
+  end
 end
 
 # Gyazoにアップロード
-STDERR.puts "upload_gyazo '#{tmpimage}' #{s3url}"
-gyazourl = `upload_gyazo '#{tmpimage}' #{s3url}`.chomp
+if tmpimage
+  STDERR.puts "upload_gyazo '#{tmpimage}' #{s3url}"
+  gyazourl = `upload_gyazo '#{tmpimage}' #{s3url}`.chomp
+else
+  STDERR.puts "upload_gyazo '#{file}' #{s3url}"
+  gyazourl = `upload_gyazo '#{file}' #{s3url}`.chomp
+end
+
+File.delete tmpimage if tmpimage
 
 if make_scrapbox_page
   # Scrapboxページ作成
   title = Time.now.strftime('%Y%m%d%H%M%S')
   scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{s3url} #{gyazourl}]%0d"
   system "#{open} '#{scrapboxurl}'"
+else
+  system "#{open} '#{gyazourl}'"
 end
-
-File.delete tmpimage if tmpimage
