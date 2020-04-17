@@ -8,8 +8,6 @@
 #
 
 project = "masui-files" # Scrapboxプロジェクト名
-backupdir = "/mnt/chromeos/GoogleDrive/MyDrive/sup" # ここにファイルを移動
-backupdir = nil unless File.exist?(backupdir)
 
 require 'digest/md5'
 
@@ -49,11 +47,6 @@ ARGV.each { |file|
   title = Time.now.strftime('%Y%m%d%H%M%S')
 
   scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{urls.join(' ')}]%0d"
-
-  if backupdir
-    puts "mv '#{file}' #{backupdir}/#{hash}#{ext}"
-    system "mv '#{file}' #{backupdir}/#{hash}#{ext}"
-  end
 
   # Scrapboxページ作成
   system "#{open} '#{scrapboxurl}'"
