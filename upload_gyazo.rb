@@ -5,6 +5,12 @@
 # JPEGの場合はタイムスタンプを保持する
 # 古い画像の場合は作成時刻を利用する
 #
+# % upload_gyazo 画像ファイル
+#
+# コメントをGyazoに登録したい場合はコメントを引数にする
+#
+# % upload_gyazo 画像ファイル コメント
+#
 
 require 'exifr/jpeg'
 require 'gyazo'
@@ -56,5 +62,4 @@ end
 
 system "echo #{url} | #{pbcopy}"
 puts url
-
 
