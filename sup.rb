@@ -18,6 +18,9 @@ if ARGV[0] == "-n"
   make_scrapbox_page = false
   ARGV.shift
 end
+if $0 =~ /gup$/ # gupコマンド
+  make_scrapbox_page = false
+end
 
 file = ARGV[0]
 gyazourl = ARGV[1]
@@ -25,7 +28,7 @@ gyazourl =~ /[0-9a-f]{32}/
 gyazoid = $&
 
 if !file || (gyazourl && !gyazoid)
-  STDERR.puts "% sup document [GyazoURL]"
+  STDERR.puts "% sup [-n] document [GyazoURL]"
   exit
 end
 
