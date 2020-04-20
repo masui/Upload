@@ -1,14 +1,13 @@
 #!/usr/bin/env ruby
 #
-# sup - Scrapbox UPload
+# sup/gup - Scrapbox/Gyazo UPload
 #
-# PDFや画像をS3とかにアップロードしつつScrapboxに登録する
-# Gyazoにも登録する
+# PDFや画像をS3とかにアップロードしつつScrapboxとGyazoに登録する
+# sup ではScrapboxページを作る
+# gup では作らない
 #
-# S3だけへのアップロードは upload コマンド
+# S3へのアップロードは upload_s3 コマンド
 # Gyazoへのアップロードは upload_gyazo コマンド
-#
-# Scrapboxにページを作らない場合は -n オプション
 #
 # ln -s ~/Upload/sup.rb ~/bin/gup
 # ln -s ~/Upload/sup.rb ~/bin/sup
@@ -19,7 +18,7 @@
 # 利用例
 #  % sup abc.pdf
 #    abc.pdfをS3にアップロードし、abc.pdfの表紙画像をGyazoにアップロードし、新しいScrapboxページを作る
-#  % gup abc.pdf または sup -n abc.pdf
+#  % gup abc.pdf
 #    abc.pdfをS3にアップロードし、abc.pdfの表紙画像をGyazoにアップロードする
 #  % sup abc.dmg GyazoURL
 #    abc.dmgをS3にアップロードし、GyazoURLに関連づける
@@ -38,10 +37,6 @@ require 'digest/md5'
 require 'time'
 
 create_scrapbox_page = true
-if ARGV[0] == "-n"
-  create_scrapbox_page = false
-  ARGV.shift
-end
 if $0 =~ /gup$/ # gupコマンド
   create_scrapbox_page = false
 end
@@ -52,7 +47,8 @@ gyazourl =~ /[0-9a-f]{32}/
 gyazoid = $&
 
 if !file || (gyazourl && !gyazoid)
-  STDERR.puts "% sup [-n] document [GyazoURL]"
+  STDERR.puts "% sup document [GyazoURL] # upload document to S3 and Gyazo, and create a Scrapbox page"
+  STDERR.puts "% gup document [GyazoURL] # upload document to S3 and Gyazo"
   exit
 end
 
@@ -83,8 +79,8 @@ end
 #
 # S3にアップロード
 #
-STDERR.puts "upload '#{file}'"
-s3url = `upload '#{file}'`.chomp
+STDERR.puts "upload_s3 '#{file}'"
+s3url = `upload_s3 '#{file}'`.chomp
 STDERR.puts s3url
 
 tmpimage = nil
