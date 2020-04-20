@@ -58,6 +58,8 @@ elsif file =~ /\.(gif|png)$/i
   res = gyazo.upload imagefile: file, created_at: t, desc: desc
   url = res[:permalink_url]
   sleep 1
+else
+  url = "http://gyazo.com" # 何もしない
 end
 
 system "echo #{url} | #{pbcopy}"

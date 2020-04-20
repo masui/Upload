@@ -16,6 +16,22 @@
 # ln -s ~/Upload/upload_s3.rb ~/bin/upload_s3
 # ln -s ~/Upload/upload_gyazo.rb ~/bin/upload_gyazo
 #
+# 利用例
+#  % sup abc.pdf
+#    abc.pdfをS3にアップロードし、abc.pdfの表紙画像をGyazoにアップロードし、新しいScrapboxページを作る
+#  % gup abc.pdf または sup -n abc.pdf
+#    abc.pdfをS3にアップロードし、abc.pdfの表紙画像をGyazoにアップロードする
+#  % sup abc.dmg GyazoURL
+#    abc.dmgをS3にアップロードし、GyazoURLに関連づける
+#  % sup abc.dmg
+#    abc.dmgをS3にアップロードし、新しいScrapboxページを作る
+#    最近Gyazoった画像があれば、そこに関連づける
+#  % gup abc.dmg
+#    abc.dmgをS3にアップロードする
+#    **最近Gyazoった画像があれば、そこに関連づける**
+#  % upload abc.dmg
+#    abc.dmgをS3にアップロードする
+#
 
 require 'gyazo'
 require 'digest/md5'
