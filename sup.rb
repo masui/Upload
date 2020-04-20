@@ -1,25 +1,33 @@
 #!/usr/bin/env ruby
 #
+# sup - Scrapbox UPload
+#
 # PDFや画像をS3とかにアップロードしつつScrapboxに登録する
 # Gyazoにも登録する
 #
-# S3へのアップロードは upload_s3 コマンド
+# S3だけへのアップロードは upload コマンド
 # Gyazoへのアップロードは upload_gyazo コマンド
 #
 # Scrapboxにページを作らない場合は -n オプション
+#
+# ln -s ~/Upload/sup.rb ~/bin/gup
+# ln -s ~/Upload/sup.rb ~/bin/sup
+# ln -s ~/Upload/upload_s3.rb ~/bin/upload
+# ln -s ~/Upload/upload_s3.rb ~/bin/upload_s3
+# ln -s ~/Upload/upload_gyazo.rb ~/bin/upload_gyazo
 #
 
 require 'gyazo'
 require 'digest/md5'
 require 'time'
 
-make_scrapbox_page = true
+create_scrapbox_page = true
 if ARGV[0] == "-n"
-  make_scrapbox_page = false
+  create_scrapbox_page = false
   ARGV.shift
 end
 if $0 =~ /gup$/ # gupコマンド
-  make_scrapbox_page = false
+  create_scrapbox_page = false
 end
 
 file = ARGV[0]
@@ -56,7 +64,9 @@ if file =~ /^.*(\.\w+)$/ then
   ext = $1
 end
 
+#
 # S3にアップロード
+#
 STDERR.puts "upload '#{file}'"
 s3url = `upload '#{file}'`.chomp
 STDERR.puts s3url
@@ -81,7 +91,7 @@ else
   gyazo.list(page: 1, per_page:1)[:images].each do |image|
     gyazoid = image[:image_id]
     newest_gyazo_time = Time.parse(image[:created_at])
-    if Time.now.gmtime - newest_gyazo_time < 30
+    if Time.now.gmtime - newest_gyazo_time < 30 # 30秒以内にアップロードされたものの場合
       #
       # 最新のGyazoデータを利用
       #
@@ -111,7 +121,7 @@ end
 
 File.delete tmpimage if tmpimage
 
-if make_scrapbox_page
+if create_scrapbox_page
   # Scrapboxページ作成
   title = Time.now.strftime('%Y%m%d%H%M%S')
   scrapboxurl = "http://scrapbox.io/#{project}/#{title}?body=[#{s3url} #{gyazourl}]%0d"
