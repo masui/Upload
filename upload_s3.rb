@@ -34,8 +34,16 @@ end
 
 hash = Digest::MD5.new.update(File.read(file)).to_s
 
+# aws cp コマンドを使う
+# 認証情報は ~/.aws/ にある
 dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
-STDERR.puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
-system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+STDERR.puts "aws s3 cp #{Shellwords.escape(file)} #{dstfile} --acl public-read "
+system "aws s3 cp #{Shellwords.escape(file)} #{dstfile} --acl public-read "
 system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | #{pbcopy}"
 puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+
+# s3cmdを使ってたとき
+# STDERR.puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+# system "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
+# system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | #{pbcopy}"
+# puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
