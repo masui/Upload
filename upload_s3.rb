@@ -32,15 +32,23 @@ if file =~ /^(.*)(\.\w+)$/ then
   ext = $2
 end
 
-hash = Digest::MD5.new.update(File.read(file)).to_s
+# hash = Digest::MD5.new.update(File.read(file)).to_s
+hash = Digest::MD5.file(file).to_s
 
 # aws cp コマンドを使う
 # 認証情報は ~/.aws/ にある
+content_type = ''
+content_type = "--content-type application/pdf " if ext =~ /^\.pdf$/i
+
 dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
-STDERR.puts "aws s3 cp #{Shellwords.escape(file)} #{dstfile} --acl public-read "
-system "aws s3 cp #{Shellwords.escape(file)} #{dstfile} --acl public-read "
+cmd = "aws s3 cp #{Shellwords.escape(file)} #{dstfile} #{content_type} --acl public-read "
+STDERR.puts cmd
+system cmd
 system "echo http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext} | #{pbcopy}"
+
 puts "http://#{bucket}.s3.amazonaws.com/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+puts "https://s3-ap-northeast-1.amazonaws.com/#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
+
 
 # s3cmdを使ってたとき
 # STDERR.puts "s3cmd -c #{home}/.s3cfg put --acl-public #{Shellwords.escape(file)} #{dstfile} > /dev/null 2> /dev/null"
