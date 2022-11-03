@@ -39,6 +39,7 @@ hash = Digest::MD5.file(file).to_s
 # 認証情報は ~/.aws/ にある
 content_type = ''
 content_type = "--content-type application/pdf " if ext =~ /^\.pdf$/i
+content_type = "--content-type 'text/plain; charset=utf-8'" if ext =~ /^\.txt$/i
 
 dstfile = "s3://#{bucket}/#{hash[0]}/#{hash[1]}/#{hash}#{ext}"
 cmd = "aws s3 cp #{Shellwords.escape(file)} #{dstfile} #{content_type} --acl public-read "
